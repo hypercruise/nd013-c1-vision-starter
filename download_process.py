@@ -1,6 +1,8 @@
 import argparse
 import io
 import os
+os.environ['CUDA_VISIBLE_DEVICES'] ="0"
+
 import subprocess
 
 import ray
@@ -134,11 +136,12 @@ def process_tfr(path, data_dir):
 def download_and_process(filename, data_dir):
     logger = get_module_logger(__name__)
     # need to re-import the logger because of multiprocesing
-    local_path = download_tfr(filename, data_dir)
+    # local_path = download_tfr(filename, data_dir)     # Commentized because the Tfrecord files have been downloaded from gcloud
+    local_path = os.path.join(os.path.join(data_dir, 'raw'), os.path.basename(filename))
     process_tfr(local_path, data_dir)
     # remove the original tf record to save space
-    logger.info(f'Deleting {local_path}')
-    os.remove(local_path)
+    # logger.info(f'Deleting {local_path}')
+    # os.remove(local_path)
 
 
 if __name__ == "__main__":
@@ -158,6 +161,6 @@ if __name__ == "__main__":
     logger.info(f'Download {len(filenames[:size])} files. Be patient, this will take a long time.')
 
     # init ray
-    ray.init(num_cpus=cpu_count())
+    ray.init(num_cpus=cpu_count(), dashboard_host='0.0.0.0')
     workers = [download_and_process.remote(fn, data_dir) for fn in filenames[:size]]
     _ = ray.get(workers)
