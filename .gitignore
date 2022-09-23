@@ -1,2 +1,8 @@
+# Python
 *__pycache__
 *.ipynb_checkpoints/
+
+# ML Training Data
+checkpoint/
+saved_model/
+pretrained_model/

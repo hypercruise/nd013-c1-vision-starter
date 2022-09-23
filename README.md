@@ -58,7 +58,7 @@ Follow [the README therein](./build/README.md) to create a docker container and 
 
 ### Download and process the data
 
-**Note:** ”If you are using the classroom workspace, we have already completed the steps in the section for you. You can find the downloaded and processed files within the `/home/workspace/data/preprocessed_data/` directory. Check this out then proceed to the **Exploratory Data Analysis** part.
+**Note:** ”If you are using the classroom workspace, we have already completed the steps in the section for you. You can find the downloaded and processed files within the `/app/project/data/preprocessed_data/` directory. Check this out then proceed to the **Exploratory Data Analysis** part.
 
 The first goal of this project is to download the data from the Waymo's Google Cloud bucket to your local machine. For this project, we only need a subset of the data provided (for example, we do not need to use the Lidar data). Therefore, we are going to download and trim immediately each file. In `download_process.py`, you can view the `create_tf_example` function, which will perform this processing. This function takes the components of a Waymo Tf record and saves them in the Tf Object Detection api format. An example of such function is described [here](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/training.html#create-tensorflow-records). We are already providing the `label_map.pbtxt` file.
 
@@ -84,36 +84,45 @@ In the classroom workspace, every library and package should already be installe
 
 ### Exploratory Data Analysis
 
-You should use the data already present in `/home/workspace/data/waymo` directory to explore the dataset! This is the most important task of any machine learning project. To do so, open the `Exploratory Data Analysis` notebook. In this notebook, your first task will be to implement a `display_instances` function to display images and annotations using `matplotlib`. This should be very similar to the function you created during the course. Once you are done, feel free to spend more time exploring the data and report your findings. Report anything relevant about the dataset in the writeup.
+You should use the data already present in `/app/project/data/waymo` directory to explore the dataset! This is the most important task of any machine learning project. To do so, open the `Exploratory Data Analysis` notebook. In this notebook, your first task will be to implement a `display_instances` function to display images and annotations using `matplotlib`. This should be very similar to the function you created during the course. Once you are done, feel free to spend more time exploring the data and report your findings. Report anything relevant about the dataset in the writeup.
 
 Keep in mind that you should refer to this analysis to create the different spits (training, testing and validation).
 
 
 ### Create the training - validation splits
-In the class, we talked about cross-validation and the importance of creating meaningful training and validation splits. For this project, you will have to create your own training and validation sets using the files located in `/home/workspace/data/waymo`. The `split` function in the `create_splits.py` file does the following:
-* create three subfolders: `/home/workspace/data/train/`, `/home/workspace/data/val/`, and `/home/workspace/data/test/`
-* split the tf records files between these three folders by symbolically linking the files from `/home/workspace/data/waymo/` to `/home/workspace/data/train/`, `/home/workspace/data/val/`, and `/home/workspace/data/test/`
+In the class, we talked about cross-validation and the importance of creating meaningful training and validation splits. For this project, you will have to create your own training and validation sets using the files located in `/app/project/data/processed`. The `split` function in the `create_splits.py` file does the following:
+* create three subfolders: `/app/project/data/train/`, `/app/project/data/val/`, and `/app/project/data/test/`
+* split the tf records files between these three folders by symbolically linking the files from `/app/project/data/waymo/` to `/app/project/data/train/`, `/app/project/data/val/`, and `/app/project/data/test/`
 
 Use the following command to run the script once your function is implemented:
 ```
-python create_splits.py --data-dir /home/workspace/data
+python create_splits.py --source /app/project/data/processed/ --destination /app/project/data/
 ```
 
 ### Edit the config file
 
 Now you are ready for training. As we explain during the course, the Tf Object Detection API relies on **config files**. The config that we will use for this project is `pipeline.config`, which is the config for a SSD Resnet 50 640x640 model. You can learn more about the Single Shot Detector [here](https://arxiv.org/pdf/1512.02325.pdf).
 
-First, let's download the [pretrained model](http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz) and move it to `/home/workspace/experiments/pretrained_model/`.
+First, let's download the [pretrained model](http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz) and move it to `/app/project/experiments/pretrained_model/`.
+```
+cd /app/project/experiments/pretrained_model/
+
+wget http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
+
+tar -xvzf ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
+
+rm -rf ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
+```
 
 We need to edit the config files to change the location of the training and validation files, as well as the location of the label_map file, pretrained weights. We also need to adjust the batch size. To do so, run the following:
 ```
-python edit_config.py --train_dir /home/workspace/data/train/ --eval_dir /home/workspace/data/val/ --batch_size 2 --checkpoint /home/workspace/experiments/pretrained_model/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/checkpoint/ckpt-0 --label_map /home/workspace/experiments/label_map.pbtxt
+python edit_config.py --train_dir /app/project/data/train/ --eval_dir /app/project/data/val/ --batch_size 2 --checkpoint /app/project/experiments/pretrained_model/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/checkpoint/ckpt-0 --label_map /app/project/experiments/label_map.pbtxt
 ```
 A new config file has been created, `pipeline_new.config`.
 
 ### Training
 
-You will now launch your very first experiment with the Tensorflow object detection API. Move the `pipeline_new.config` to the `/home/workspace/experiments/reference` folder. Now launch the training process:
+You will now launch your very first experiment with the Tensorflow object detection API. Move the `pipeline_new.config` to the `/app/project/experiments/reference` folder. Now launch the training process:
 * a training process:
 ```
 python experiments/model_main_tf2.py --model_dir=experiments/reference/ --pipeline_config_path=experiments/reference/pipeline_new.config
