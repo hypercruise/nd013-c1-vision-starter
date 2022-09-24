@@ -103,9 +103,9 @@ python create_splits.py --source /app/project/data/processed/ --destination /app
 
 Now you are ready for training. As we explain during the course, the Tf Object Detection API relies on **config files**. The config that we will use for this project is `pipeline.config`, which is the config for a SSD Resnet 50 640x640 model. You can learn more about the Single Shot Detector [here](https://arxiv.org/pdf/1512.02325.pdf).
 
-First, let's download the [pretrained model](http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz) and move it to `/app/project/experiments/pretrained_model/`.
+First, let's download the [pretrained model](http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz) and move it to `/app/project/nd013-c1-vision-starter/experiments/pretrained_model/`.
 ```
-cd /app/project/experiments/pretrained_model/
+cd /app/project/nd013-c1-vision-starter/experiments/pretrained_model/
 
 wget http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
 
@@ -116,15 +116,17 @@ rm -rf ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
 
 We need to edit the config files to change the location of the training and validation files, as well as the location of the label_map file, pretrained weights. We also need to adjust the batch size. To do so, run the following:
 ```
-python edit_config.py --train_dir /app/project/data/train/ --eval_dir /app/project/data/val/ --batch_size 2 --checkpoint /app/project/experiments/pretrained_model/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/checkpoint/ckpt-0 --label_map /app/project/experiments/label_map.pbtxt
+python edit_config.py --train_dir ../data/train/ --eval_dir ../data/val/ --batch_size 2 --checkpoint ../nd013-c1-vision-starter/experiments/pretrained_model/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/checkpoint/ckpt-0 --label_map ../nd013-c1-vision-starter/experiments/label_map.pbtxt
 ```
 A new config file has been created, `pipeline_new.config`.
 
 ### Training
 
-You will now launch your very first experiment with the Tensorflow object detection API. Move the `pipeline_new.config` to the `/app/project/experiments/reference` folder. Now launch the training process:
+You will now launch your very first experiment with the Tensorflow object detection API. Move the `pipeline_new.config` to the `/app/project/nd013-c1-vision-starter/experiments/reference` folder. Now launch the training process:
 * a training process:
 ```
+mv pipeline_new.config /app/project/nd013-c1-vision-starter/experiments/reference/
+
 python experiments/model_main_tf2.py --model_dir=experiments/reference/ --pipeline_config_path=experiments/reference/pipeline_new.config
 ```
 Once the training is finished, launch the evaluation process:
