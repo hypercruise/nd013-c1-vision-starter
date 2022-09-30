@@ -6,4 +6,7 @@
 checkpoint/
 saved_model/
 pretrained_model/
-reference/
+train/
+eval/
+exported/
+ckpt-*
