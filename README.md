@@ -173,20 +173,140 @@ python inference_video.py --labelmap_path label_map.pbtxt --model_path experimen
 ## Submission Template
 
 ### Project overview
-This section should contain a brief description of the project and what we are trying to achieve. Why is object detection such an important component of self driving car systems?
+This project is related to detect objects, e.g., vehicles, pedestrians, and cyclists, in an urban environment using Deep Learning.
+In order to develop Self-Driving cars on efficient ways, it is essencial to use deep learning algorithms to detect objects and lane lines on the roads, and classify traffic light signals, etc.
+Although we use the same dataset, the results will be different by selection of models and setting of configuration parameters.
+
+Thus, I focused on learning the following items in this project:
+1) How to setup Deep Learning development environments in a local machine. I believe one of the hardest parts of deep learning is setup the machine with GPUs, Cuda, CuDNN, Tensorflow and Python packages.
+2) How to improve the performance of Deep Learning model by adjusting learning parameters.
+3) How to select and debug a pre-trained model on the custom machine.
+
 
 ### Set up
-This section should contain a brief description of the steps to follow to run the code for this repository.
+Please refer the modified project instruction above.
 
 ### Dataset
 #### Dataset analysis
-This section should contain a quantitative and qualitative description of the dataset. It should include images, charts and other visualizations.
+The Waymo open dataset was used for this projects. More specifically 200 tfrecords were randomly selected.
+The dataset contains various roads scenes weather conditions as follows:
+
+![image](https://user-images.githubusercontent.com/113762711/193217461-35bff48b-f46d-4ea8-8738-eaa441e85537.png)
+![image](https://user-images.githubusercontent.com/113762711/193217898-6b440d12-28d4-4bf7-a1eb-ac96f017d5cd.png)
+
 #### Cross validation
-This section should detail the cross validation strategy and justify your approach.
+The 200 tfrecords were splited for training, evaluation, and testing in a ratio of 80%:10%:10% using "create_splits.py" in this repository.
+
 
 ### Training
 #### Reference experiment
-This section should detail the results of the reference experiment. It should includes training metrics and a detailed explanation of the algorithm's performances.
+The referecne experiment was conducted using the baseline model and configuration which were provided by Udacity.
+```
+Model: SSD ResNet50 V1 FPN 640x640 (RetinaNet50)
+Num of Steps: 25k
+Config: Not Changed
+```
 
-#### Improve on the reference
-This section should highlight the different strategies you adopted to improve your model. It should contain relevant figures and details of your findings.
+#### Results of Reference experiment 
+The results of reference experiment was not good.
+As the learning progressed, the loss reduction appeared very gradual, and as a result, it showed low performance even after the learning was completed.
+![image](https://user-images.githubusercontent.com/113762711/193220750-45e2ecda-17d7-4ff4-bcf7-f246d806baec.png)
+
+
+As shown the detecion image below, only two vehicles can be detected with very low confidence levels.
+![image](https://user-images.githubusercontent.com/113762711/193221707-4abbf719-abcb-4130-9c88-5d1cef584215.png)
+
+
+No vehicle was detected in the dark condition dataset.
+![animation_ref](https://user-images.githubusercontent.com/113762711/193223187-d2fbc678-5089-4014-a1c3-1d4b8cb96e11.gif)
+
+
+#### Exp1: Minor changes on batch size and data augmentation
+The experiment 1 was conducted with the same model and slightly changed the configuration paramters as follows:
+```
+Model: SSD ResNet50 V1 FPN 640x640 (RetinaNet50)
+Num of Steps: 25k
+Changed config:
+- batch_size: 2 --> 24 (Larger batch size for fast learning)
+- data_augmentation_options {
+    random_image_scale {
+      min_scale_ratio: 0.3
+      max_scale_ratio: 1.3
+    }
+  }
+```
+#### Results of Exp1 
+The results of experiment 1 was highly improved.
+The loss reduction show relatively stiff, and it showed higher performance than the referecne
+
+![image](https://user-images.githubusercontent.com/113762711/193225051-41d168bd-020c-4c06-9f1a-6a4671fa0580.png)
+
+
+As shown the detecion image below, much more vehicles can be detected with higher confidence levels.
+But, some vehicles were still not detected.
+![image](https://user-images.githubusercontent.com/113762711/193225698-a4f819b4-132a-475d-a0b2-38d96eac88d6.png)
+
+
+Now the vehicles can be detected in the dark condition dataset.
+![animation_exp1](https://user-images.githubusercontent.com/113762711/193226293-912b4e31-a7d9-426a-bfd5-7e7813eac61f.gif)
+
+
+#### Exp2: Changes on learning parameters with the same model
+The experiment 2 was conducted with the same model and the configuration paramters as follows:
+```
+Model: SSD ResNet50 V1 FPN 640x640 (RetinaNet50)
+Num of Steps: 300k
+Changed config:
+- batch_size: 24 --> 16 (Sliightly lower batch size to reduce overfitting)
+- data_augmentation_options
+  --> remove random_crop_image
+- learning rate parameters changed:
+  learning_rate_base: 0.04 --> 0.08
+  total_steps: 25000 --> 300000
+  warmup_learning_rate: 0.013333 --> 0.001
+  warmup_steps: 2000 --> 2500
+```
+#### Results of Exp2
+The results of experiment 2 show no major improvement than Experiment 1.
+The total loss showed much lower than the experiment 2, but the performance enhancement was limited due to overfitting. 
+
+![image](https://user-images.githubusercontent.com/113762711/193229554-11e4eba5-71d6-454a-a030-00315e0bf71a.png)
+
+As shown the detecion image below, much more vehicles can be detected with very high confidence levels.
+But, most vehicles were not detected. Even worse than experiment 1.
+
+![image](https://user-images.githubusercontent.com/113762711/193229879-5d9954bd-2168-4f3d-9be1-4806b7d01768.png)
+
+
+This model can detect the vehicles with very high confidence in the dark condition dataset.
+![animation_exp2](https://user-images.githubusercontent.com/113762711/193230793-2f038738-5463-4919-93c2-1518a1eb31aa.gif)
+
+
+#### Exp3: With new pre-trained model
+The experiment 3 was conducted with different pre-trained model as follows:
+The CenterNet show the fasted performance among the pre-trained models in the model zoo.
+```
+Model: CenterNet MobileNetV2 FPN 512x512
+Num of Steps: 500k
+Changed config:
+- batch_size: 16
+
+Changed parameters for debugging:
+- use_separable_conv: true (Added)
+- fine_tune_checkpoint_version: V2 (Added)
+- random_horizontal_flip (Removed)
+```
+#### Results of Exp2
+The results of experiment 3 show no major improvement than Experiment 1.
+The total loss showed much lower than the experiment 2, but the performance enhancement was limited due to overfitting. 
+
+![image](https://user-images.githubusercontent.com/113762711/193233634-6d3b0b1a-48b8-4dbf-9109-2094f82031a4.png)
+
+
+As shown the detecion image below, this model can detect most vehicles, but the confidence levels were relatively low. 
+
+![image](https://user-images.githubusercontent.com/113762711/193233821-da251e37-b876-44cc-a6f4-f5c6909724e0.png)
+
+
+This model can detect the vehicles in the dark condition dataset, but the confidence levels were relatively low.
+![animation_exp3](https://user-images.githubusercontent.com/113762711/193233905-8397686a-b963-4254-815a-a5942ba00a5e.gif)
