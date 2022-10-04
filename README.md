@@ -283,8 +283,17 @@ This model can detect the vehicles with very high confidence in the dark conditi
 
 
 #### Exp3: With new pre-trained model
-The experiment 3 was conducted with different pre-trained model as follows:
-The CenterNet show the fasted performance among the pre-trained models in the model zoo.
+I believe one of the most important feature of deep learning models in Self-Driving car is real-time performance.
+Thus, I took a different pre-trained model, so called, CenterNet for the last experiment.
+Because it show the fasted performance among the pre-trained models in the model zoo (see the table capture below).
+
+![image](https://user-images.githubusercontent.com/113762711/193818028-991f1269-78db-4a97-b74b-5cc6f21c8f82.png)
+![image](https://user-images.githubusercontent.com/113762711/193817836-b66e4e58-c36b-4f98-afc9-37bc03415634.png)
+![image](https://user-images.githubusercontent.com/113762711/193818196-0834d97d-02a9-4120-a63c-33a72f26467c.png)
+
+
+The configuration paramters were set as follows:
+
 ```
 Model: CenterNet MobileNetV2 FPN 512x512
 Num of Steps: 500k
@@ -295,7 +304,35 @@ Changed parameters for debugging:
 - use_separable_conv: true (Added)
 - fine_tune_checkpoint_version: V2 (Added)
 - random_horizontal_flip (Removed)
+
+Augmentaiton options
+- random_crop_image
+- random_adjust_hue
+- random_adjust_contrast
+- random_adjust_saturation
+- random_adjust_brightness
+- random_absolute_pad_image
 ```
+
+#### Examples of augmention effects
+
+- random_absolute_pad_image is used to simulate an obscured image occured by signs, street trees, etc. on urban roads.
+
+![image](https://user-images.githubusercontent.com/113762711/193819724-c8f8613b-2fcd-4d1b-b771-8a7898aefbae.png)
+
+- random_crop_image is used to simulate offet views when turning an ego vehicle the street corners can be located on the vehicle center. The random_crop can generate these offet view points.
+
+![image](https://user-images.githubusercontent.com/113762711/193821538-7163c491-4618-4534-b9a6-a9cf7c335e0e.png)
+
+- The image below is combined scene of pad_image and crop_image.
+
+![image](https://user-images.githubusercontent.com/113762711/193819943-1ab2be3c-f6ba-4c68-a1c6-99082e4c8ee5.png)
+
+- The color related augmentation such as random_adjust_hue, random_adjust_contrast, random_adjust_saturation, and random_adjust_brightness, can be used to simulate different brightness conditions such as night, sun set, sun reflection, etc.
+
+![image](https://user-images.githubusercontent.com/113762711/193821899-20dca496-0003-4f78-aea5-c868d3b87913.png)
+
+
 #### Results of Exp2
 The results of experiment 3 show no major improvement than Experiment 1.
 The total loss showed much lower than the experiment 2, but the performance enhancement was limited due to overfitting. 
